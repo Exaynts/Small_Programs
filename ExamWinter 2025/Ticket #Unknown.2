@@ -1,0 +1,50 @@
+#include <iostream>
+#include <vector>
+using namespace std;
+
+
+// Выясняем, подходит ли заданное число условию
+int IsSuitable(int n) {
+	int ones = 0;
+	int zeros = 0;
+	int remainder;
+	while (n > 0) {
+		remainder = n % 2;
+		if (remainder == 1)
+			ones += 1;
+		else
+			zeros = 1;
+		n /= 2;
+	}
+	if (ones >= 3 and zeros >= 1)
+		return 1;
+	else
+		return 0;
+}
+
+const int NumOfNum = 5; // Кол-во вводимых чисел
+int main() {
+	int max_number = 0;
+	vector <int> A(NumOfNum);
+	int triples_number = 0;
+	// Ввод массива чисел
+	for (int i = 0; i < NumOfNum; i++) {
+		cin >> A[i];
+	}
+	// Анализ массива
+	for (int i = 0; i < NumOfNum - 2; i++) {
+		// Выясненяем, подходит ли тройка под условие?
+		if (IsSuitable(A[i]) + IsSuitable(A[i+1]) + IsSuitable(A[i+2]) >= 2) {
+			triples_number += 1;
+			// Находим максимальное число, состоящее в этих тройках
+			for (int j = 0; j < 3; j++) {
+				if (A[i + j] > max_number)
+					max_number = A[i + j];
+			}
+		}
+	}
+	//Вывод ответа
+	cout << "Number triples with fullfilled condition equals " << triples_number << endl;
+	cout << "Maximum number in this triples equals " << max_number;
+	return 0;
+}
