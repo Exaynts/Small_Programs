@@ -1,0 +1,44 @@
+#include <iostream>
+#include <vector>
+using namespace std;
+
+// Заполнение массива
+void Input(vector<vector<int>> &Num, int a, int b) {
+	for (int i = 0; i < a; i++) {
+		for (int j = 0; j < b; j++) {
+			cin >> Num[i][j];
+		}
+		cout << endl;
+	}
+}
+// Вычисление искомой суммы
+void Sum(vector<vector<int>>& Num, int a, int b, int k) {
+	if (k > a + b - 2 or k < 0)
+		cout << "Число " << k << " не является суммой индексов заданного массива";
+	else {
+	int sum = 0;
+	for (int i = 0; i <= k; i++) {
+		if (i < a and 0 <= k - i and k - i < b)
+			sum += Num[i][k - i];
+	}
+	cout << "Сумма элементов массива, индексы которых составляют в сумме число " << k << ", равна " << sum;
+	}
+}
+
+int main() {
+	setlocale(LC_ALL, "russian");
+	// Cоздание двумерного массива
+	cout << "Ввод размера двумерного массива: " << endl;
+	int a;  cout << "a = "; cin >> a;
+	int b;  cout << "b = "; cin >> b;
+	vector<vector<int>> Num(a, vector <int>(b));
+	// Ввод заданного значения k
+	int k;
+	cout << "Заданное число k = ";
+	cin >> k;
+	// Заполнение массива
+	Input(Num, a, b);
+	// Вычисление искомой суммы
+	Sum(Num, a, b, k);
+	return 0;
+}
