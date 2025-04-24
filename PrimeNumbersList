@@ -1,0 +1,34 @@
+#include <iostream>
+#include <vector>
+#include <math.h>
+using namespace std;
+
+void AddIfPrime(long int num, vector <long int>& primes) {
+    long int sqrt_num = long int(pow(num, 0.5));
+
+    for (long int p : primes) {
+        if (p > sqrt_num) {
+            primes.push_back(num);
+            break;
+        }
+        else if (num % p == 0) {
+            break;
+        }
+    }
+}
+
+int main() {
+    vector <long int> primes{2};
+    long int end;
+    cout << "end: ";
+    cin >> end;
+
+    for (long int num = 3; num <= end; num++) {
+        AddIfPrime(num, primes);
+    }
+
+    for (auto p : primes) {
+        cout << p << endl;
+    }
+    return 0;
+}
