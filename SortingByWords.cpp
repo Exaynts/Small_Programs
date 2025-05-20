@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <sstream>
 #include <algorithm>
 using namespace std;
 
@@ -8,19 +9,8 @@ using namespace std;
 vector<string> Spliting(string S) {
     vector<string> S_split;
     string word;
-    // Посимвольное добавление букв в слово
-    for (char ch : S) {
-        if (isspace(ch)) {
-            if (!word.empty()) {
-                S_split.push_back(word);
-                word.clear();
-            }
-        }
-        else
-            word += ch;
-    }
-    // Добавляем последнее слово, если требуется
-    if (!word.empty()) {
+    stringstream ss(S);
+    while(ss >> word) {
         S_split.push_back(word);
     }
 
