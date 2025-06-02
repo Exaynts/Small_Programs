@@ -2,9 +2,9 @@
 #include <vector>
 #include <algorithm>
 using namespace std;
-
-int main() {
-    vector<int> ratings {5, 6};
+class Solution {
+public:
+    int candy(vector<int>& ratings) {
     sort(ratings.begin(), ratings.end());
     int answer = 1;
     int add_per_child = 1;
@@ -15,8 +15,10 @@ int main() {
                 add_per_child += 1;
             }
             answer += add_per_child;
+            add_per_child -= 1;
         }
     }
     cout << answer;
-    return 0;
-}
+    return answer;
+    }
+};
