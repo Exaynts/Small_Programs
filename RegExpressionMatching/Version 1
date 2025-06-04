@@ -1,0 +1,39 @@
+//It has bugs
+// p = "k*n"
+// s = "knnn"
+bool isMatch(string s, string p) {
+int si = 0; // -- индкекс прохода строки s
+int i = 0; // i -- индекс прохода строки p
+while (i < p.size()) {
+    // Если попалась точка
+    if (p[i] == '.') {
+        i++; si++;
+    }
+    // Если попалась звездочка
+    else if (p[i] == '*') {
+        int pstar = p.find('*', i + 1);
+        if (pstar == string::npos) { 
+            pstar = p.size();
+        }
+        string subp = p.substr(i + 1, pstar - i - 1);
+        if (subp.size() == 0)
+            return true;
+        int v = s.find(subp, si);
+        i = pstar;
+        si = v + subp.size();
+
+    }
+    // Если попался любой другой символ
+    else {
+        if (p[i] != s[si])
+            return false;
+        else {
+            i++;  si++;
+        }
+    }
+}
+if (si != s.size())
+    return false;
+else
+    return true;
+    }
