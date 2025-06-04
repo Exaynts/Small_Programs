@@ -1,0 +1,98 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+// Ввод заданного значения
+int Input_int() {
+    int input;
+    while (!(cin >> input) or (cin.peek() != '\n')) {
+        cin.clear();
+        while (cin.get() != '\n');
+        cout << "Введите целое число!" << endl;
+    }
+    cin.ignore();
+    return input;
+}
+
+class Solution {
+private:
+    int length; // Длина массива
+    vector <int> array; // Массив чисел
+public:
+    // Конструктор
+    Solution();
+    // Геттер массива
+    vector <int>& Get();
+    // Нахождение начального и конечного целевого значения target
+    vector <int> Values(int target);
+    // Вывод всего массива
+    void Print();
+    // Деструктор
+    ~Solution() { cout << "Массив был удалён"; };
+};
+
+// Конструктор
+Solution::Solution() {
+    cout << "Введите длину массива: ";
+    length = Input_int();
+    for (int i = 0; i < length; i++) {
+        cout << "nums[" << i << "]: ";
+        array.push_back(Input_int());
+    }
+}
+// Геттер массива
+vector <int>& Solution::Get() {
+    return array;
+}
+// Нахождение начального и конечного целевого значения target
+vector <int> Solution::Values(int target) {
+    vector <int> Output;
+    int i = 0;
+    // Находим начальную позицию
+    while (array[i] != target) {
+        i += 1;
+        if (i == array.size()) {
+            Output.push_back(-1);
+            Output.push_back(-1);
+            return Output;
+        }
+    }
+    Output.push_back(i);
+    // Находим конечную позицию
+    while (array[i] == target) {
+        i += 1;
+        if (i == array.size()) 
+            break;
+    }
+    i -= 1;
+    Output.push_back(i);
+    return Output;
+}
+// Вывод всего массива
+void Solution::Print() {
+    for (int i = 0; i < array.size(); i++) {
+        cout << array[i] << " ";
+    }
+    cout << endl;
+}
+
+// Точка запуска программы
+int main() {
+    // Обработка русского текста
+    setlocale(LC_ALL, "Russian");
+    system("chcp 1251");
+    // Определение и инициализация массива
+    Solution nums;
+    // Сортировка массива
+    sort(nums.Get().begin(), nums.Get().end());
+    nums.Print();
+    // Ввод заданного значения target
+    cout << "target: ";
+    int target = Input_int();
+    // Нахождение начального и конечного целевого значения target
+    vector<int> Output = nums.Values(target);
+    cout << "Output: [" << Output[0] << "," << Output[1] << "]" << endl;
+
+    return 0;
+}
