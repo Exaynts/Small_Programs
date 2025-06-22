@@ -1,0 +1,72 @@
+#include <iostream>
+#include <vector>
+#include <string>
+using namespace std;
+
+// vector substirng
+vector <int> casesfind(string s, string subp) {
+    vector<int> cases;
+    while (true) {
+        int s_sub = s.find(subp, 0);
+        if (s_sub == string::npos) {
+            break;
+        }
+        s.erase(0, s_sub + subp.size());
+        cases.push_back(s_sub);
+    }
+    return cases;
+}
+bool star_subcase(string p, string s, string subp, int subcase) {
+    s.erase(0, subcase);
+    vector <int> cases = casesfind(s, subp);
+    for (int i = 0; i < cases.size(); i++) {
+        int s_sub = s.find(subp, 0);
+        if (s_sub == string::npos) {
+            return false;
+        }
+        star_subcase(p, s, subp, subcase);
+    }
+    return true;
+}
+bool A(string p, string s) {
+    int si = 0; // -- индкекс прохода строки s
+    int i = 0; // i -- индекс прохода строки p
+    while (p.size() != 0) {
+        // Если попалась не звездочка (точка или любой другой символ)
+        if (p[0] != '*') {
+            if (p[0] == '.') {
+                p = p.substr(1, p.size());
+                s = s.substr(1, s.size());
+            }
+            else if (p[0] == s[0]) {
+                p = p.substr(1, p.size());
+                s = s.substr(1, s.size());
+            }
+            else
+                return false;
+        }
+        // Если попалась звездочка
+        else {
+            int pstar = p.find('*', 1);
+            if (pstar == string::npos) {
+                pstar = p.size();
+            }
+            string subp = p.substr(1, pstar - 1);
+            vector <int> cases = casesfind(s, subp);
+            int subcase = cases[0];
+            star_subcase(p, s, subp, subcase);
+            p.erase(0, pstar);
+        }
+    }
+    if (s.size() == 0)
+        return true;
+    else
+        return false;
+}
+int main() {
+    string p, s;
+    p = "*n";
+    s = "nnn";
+    cout << A(p, s);
+    return 0;
+}
