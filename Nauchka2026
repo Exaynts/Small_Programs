@@ -1,0 +1,123 @@
+import networkx as nx
+import numpy as np
+import random
+import matplotlib.pyplot as plt
+from scipy.stats import spearmanr
+
+# Генерация исходного графа
+N = 2500
+m = 3
+G = nx.erdos_renyi_graph(N, 0.006, seed=42)
+
+print(f"Исходный граф: {G.number_of_nodes()} узлов, {G.number_of_edges()} рёбер")
+
+
+# Функция для получения топ‑10% узлов
+def get_top_10_percent(nodes_scores_dict):
+    k = max(1, int(len(nodes_scores_dict) * 0.1))
+    sorted_nodes = sorted(nodes_scores_dict.items(), key=lambda x: x[1], reverse=True)
+    return {node for node, _ in sorted_nodes[:k]}
+
+
+# Исходные ранжирования
+deg_cent = nx.degree_centrality(G)
+top_deg_orig = get_top_10_percent(deg_cent)
+
+k_shell = nx.core_number(G)
+top_kshell_orig = get_top_10_percent(k_shell)
+
+pagerank = nx.pagerank(G, alpha=0.85)
+top_pr_orig = get_top_10_percent(pagerank)
+
+print(f"Размер топ‑10%: {len(top_deg_orig)} узлов")
+
+# Выводим распределение k-shell
+shell_counts = {}
+for v in k_shell.values():
+    shell_counts[v] = shell_counts.get(v, 0) + 1
+
+# Параметры эксперимента
+num_noisy = 30
+noise_edges = 1000  # увеличиваем шум для контраста
+
+stab_deg_jaccard = []
+stab_kshell_jaccard = []
+stab_pr_jaccard = []
+
+rho_deg = []
+rho_kshell = []
+rho_pr = []
+
+# Перестройка графа с использованием случайных ребер и вычисление необходимых характеристик
+for i in range(num_noisy):
+    G_noisy = G.copy()
+
+    # Добавляем случайные рёбра
+    possible = [(u, v) for u in range(N) for v in range(u + 1, N) if not G_noisy.has_edge(u, v)]
+    if len(possible) < noise_edges:
+        add_edges = possible
+    else:
+        add_edges = random.sample(possible, noise_edges)
+    G_noisy.add_edges_from(add_edges)
+
+    deg_n = nx.degree_centrality(G_noisy)
+    ks_n = nx.core_number(G_noisy)
+    pr_n = nx.pagerank(G_noisy, alpha=0.85)
+
+    top_deg_n = get_top_10_percent(deg_n)
+    top_ks_n = get_top_10_percent(ks_n)
+    top_pr_n = get_top_10_percent(pr_n)
+
+    stab_deg_jaccard.append(len(top_deg_orig & top_deg_n) / len(top_deg_orig))
+    stab_kshell_jaccard.append(len(top_kshell_orig & top_ks_n) / len(top_kshell_orig))
+    stab_pr_jaccard.append(len(top_pr_orig & top_pr_n) / len(top_pr_orig))
+
+    # Ранговая корреляция
+    nodes_list = list(range(N))
+    deg_orig = [deg_cent[n] for n in nodes_list]
+    deg_noisy = [deg_n[n] for n in nodes_list]
+    ks_orig = [k_shell[n] for n in nodes_list]
+    ks_noisy = [ks_n[n] for n in nodes_list]
+    pr_orig = [pagerank[n] for n in nodes_list]
+    pr_noisy = [pr_n[n] for n in nodes_list]
+
+
+    def safe_corr(a, b):
+        if np.std(a) == 0 or np.std(b) == 0:
+            return np.nan
+        return spearmanr(a, b).correlation
+
+
+    rho_deg.append(safe_corr(deg_orig, deg_noisy))
+    rho_kshell.append(safe_corr(ks_orig, ks_noisy))
+    rho_pr.append(safe_corr(pr_orig, pr_noisy))
+
+# Вывод результатов
+print("\n    Устойчивость топ‑10% (доля пересечения)")
+print(f"Degree:   {np.nanmean(stab_deg_jaccard):.3f} ± {np.nanstd(stab_deg_jaccard):.3f}")
+print(f"K-shell:  {np.nanmean(stab_kshell_jaccard):.3f} ± {np.nanstd(stab_kshell_jaccard):.3f}")
+print(f"PageRank: {np.nanmean(stab_pr_jaccard):.3f} ± {np.nanstd(stab_pr_jaccard):.3f}")
+
+print("\n    Ранговая корреляция Спирмена (по всем узлам)")
+print(f"Degree:   {np.nanmean(rho_deg):.3f} ± {np.nanstd(rho_deg):.3f} (n={len(rho_deg) - np.isnan(rho_deg).sum()})")
+print(
+    f"K-shell:  {np.nanmean(rho_kshell):.3f} ± {np.nanstd(rho_kshell):.3f} (n={len(rho_kshell) - np.isnan(rho_kshell).sum()})")
+print(f"PageRank: {np.nanmean(rho_pr):.3f} ± {np.nanstd(rho_pr):.3f} (n={len(rho_pr) - np.isnan(rho_pr).sum()})")
+
+# Визуализация результатов
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+
+ax1.boxplot([stab_deg_jaccard, stab_kshell_jaccard, stab_pr_jaccard],
+            tick_labels=['Degree', 'K-shell', 'PageRank'])
+ax1.set_ylabel('Stability (доля сохранённых топ‑10% узлов)')
+ax1.set_title('Устойчивость топ‑10% к добавлению 1000 случайных рёбер')
+ax1.grid(axis='y', linestyle='--', alpha=0.7)
+
+ax2.boxplot([rho_deg, rho_kshell, rho_pr],
+            tick_labels=['Degree', 'K-shell', 'PageRank'])
+ax2.set_ylabel("Ранговая корреляция Спирмена (ρ)")
+ax2.set_title("Стабильность ранжирования всех узлов")
+ax2.grid(axis='y', linestyle='--', alpha=0.7)
+
+plt.tight_layout()
+plt.show()
